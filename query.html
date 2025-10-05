@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>RP 陳情系統 - 查詢案件</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial; margin: 40px; }
+input { margin: 4px; padding: 6px; width: 45%; }
+button { padding: 6px 12px; }
+img { margin-top: 10px; max-width: 300px; }
+</style>
+</head>
+<body>
+<h2>🔍 查詢陳情案件</h2>
+<input id="caseId" placeholder="案件編號">
+<input id="casePwd" placeholder="查詢密碼" type="password">
+<button id="searchBtn">查詢</button>
+
+<div id="result"></div>
+
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC6NqzMI3cS7DHRnmk0tH2-9Wf4-kR7fxw",
+  authDomain: "rp-complaint-system.firebaseapp.com",
+  projectId: "rp-complaint-system",
+  databaseURL: "https://rp-complaint-system-default-rtdb.firebaseio.com/"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+document.getElementById('searchBtn').onclick = async () => {
+  const id = document.getElementById('caseId').value.trim();
+  const pwd = document.getElementById('casePwd').value.trim();
+  const snap = await db.ref('petitions/' + id).get();
+  const resultDiv = document.getElementById('result');
+  if (!snap.exists()) return resultDiv.innerText = "❌ 查無此案件";
+  const data = snap.val();
+  if (data.password !== pwd) return resultDiv.innerText = "🔒 密碼錯誤";
+
+  resultDiv.innerHTML = `
+    <h3>${data.title}</h3>
+    <p>狀態：${data.status}</p>
+    <p>內容：${data.content}</p>
+    <p>回覆：${data.reply || "（尚未回覆）"}</p>
+    ${data.imageUrl ? `<img src="${data.imageUrl}">` : ""}
+  `;
+};
+</script>
+</body>
+</html>
